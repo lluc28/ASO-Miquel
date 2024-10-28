@@ -1,4 +1,4 @@
-## Instal·lació i preparació del Windows Server 2022
+## Instal·lació i preparació del Windows Server
 
 #  Codi vista prèvia
 
