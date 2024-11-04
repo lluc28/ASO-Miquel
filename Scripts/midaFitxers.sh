@@ -1,23 +1,37 @@
 #!/bin/sh
 
-# Comprova que s'han passat els arguments correctes
+# Reviso que hi hagin dos arguments
 if [ $# -lt 2 ]; then
   echo "Ús: $0 mida_en_KB fitxer1 fitxer2 ... fitxerN"
   exit 1
 fi
 
-# Assigna la mida a una variable
+# El primer argument és la mida en KB
 MIDA_KB=$1
-shift # Elimina el primer argument (mida) per treballar amb els fitxers
 
+# Variables per al log
 USUARI=$(whoami)
 DATA_HORA=$(date "+%Y-%m-%d %H:%M:%S")
 LOG_FILE="/var/log/massaGran.log"
 
-# Recorre cada fitxer passat com argument
-for FITXER in "$@"; do
-  # Comprova si el fitxer existeix
+# Recorro els arguments, començant pel segon
+for i in $(seq 2 $#); do
+  FITXER=${!i} # Agafo el valor de l'argument que correspon al número i del bucle for
+
+  # REviso que el fitxer existeix
   if [ ! -f "$FITXER" ]; then
     echo "$DATA_HORA - Usuari: $USUARI - ERROR: El fitxer $FITXER no existeix." | tee -a $LOG_FILE
-    continue # Continua amb el següent fitxer
+    continue
   fi
+
+  # amb la comanda du calculo l'espai que ocupa el fitxer
+  MIDA_FITXER=$(du -k "$FITXER" | cut -f1)
+
+  # Aquí resto donada (MIDA_KB) de la mida del fitxer (MIDA_FITXER) i faig una cosa o un altre depenent del resultat
+  if [ "$MIDA_FITXER" -gt "$MIDA_KB" ]; then
+    DIFERENCIA=$(($MIDA_FITXER - $MIDA_KB))
+    echo "$DATA_HORA - Usuari: $USUARI - INFO: El fitxer $FITXER és més gran que $MIDA_KB KB per $DIFERENCIA KB." | tee -a $LOG_FILE
+  else
+    echo "$DATA_HORA - Usuari: $USUARI - INFO: El fitxer $FITXER no supera els $MIDA_KB KB." | tee -a $LOG_FILE
+  fi
+done
