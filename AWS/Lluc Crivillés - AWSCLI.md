@@ -14,8 +14,11 @@ $ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.z
 unzip awscliv2.zip
 
 4. Instal·lar AWS CLI
-5. 
+   
 sudo ./aws/install
 
+5. Verificar la Instal·lació
+
+aws --version
 
 ### A third-level heading
