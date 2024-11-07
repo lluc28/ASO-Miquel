@@ -20,4 +20,24 @@ aws --version
 ![image](https://github.com/user-attachments/assets/6002a099-849a-4bff-b44a-b2d4fa1b2ba8)
 
 
-### A third-level heading
+## Configuració
+
+1. Crear una carpeta al debian
+
+![image](https://github.com/user-attachments/assets/8de5fc52-4501-46e9-9e13-822d87fa6273)
+
+2. Crear un fitxer credentials
+
+![image](https://github.com/user-attachments/assets/d909b0b5-d0da-418a-9193-7fdf713d6c3e)
+
+3. Afegir la línia d'AWS CLI
+
+Primer he copiat la línia de l'AWS
+
+![image](https://github.com/user-attachments/assets/4b303090-a60f-474c-8eb2-32a36d1f7bb8)
+
+Finalment l'he enganxat al fitxer credentials
+
+![image](https://github.com/user-attachments/assets/40dbe9cd-6762-4f4e-a263-bfb8dbe80c1d)
+
+
