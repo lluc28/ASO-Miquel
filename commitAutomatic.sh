@@ -2,6 +2,6 @@
 
 data="$1"
 
-git add .
+git add /home/lluc/scripts
 git commit -m "$data"
 git push
