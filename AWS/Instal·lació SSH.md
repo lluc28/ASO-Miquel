@@ -13,3 +13,16 @@
 ![image](https://github.com/user-attachments/assets/f6802955-b9a9-4b6c-ad48-4cfaeaf332aa)
 
 ## Preparar un usuari per poder-me connectar
+![image](https://github.com/user-attachments/assets/43810aff-d490-4d2f-89e5-1f4bafdaf07b)
+
+## Crear la carpeta per emmagatzemar les claus SSH
+![image](https://github.com/user-attachments/assets/b9fbd529-3b69-44a8-85e0-3c63e3e65bb4)
+
+## Configurar claus SSH autoritzades
+
+
+## Configurar permisos dels arxius SSH
+
+## Configurar el servei SSH per a autenticació amb claus
+
+## Reiniciar el servei SSH per aplicar la configuració
