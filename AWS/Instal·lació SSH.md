@@ -18,11 +18,42 @@
 ## Crear la carpeta per emmagatzemar les claus SSH
 ![image](https://github.com/user-attachments/assets/b9fbd529-3b69-44a8-85e0-3c63e3e65bb4)
 
-## Configurar claus SSH autoritzades
+## Afegir les claus i modificar els permisos de ".ssh" i "authorized_keys"
+```powershell
+Set-Content -Path $env:USERPROFILE\.ssh_keys\authorized_keys -Value "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDOVW8UbxENFatfzs1r6wN1+B56keMitZ72z+5sVf/8hcd8fe+EsshZhFJOC3a3N61/prje/gWwo+bjmY6ZzCGDp7bwZ9XIveYQuA3ALs063Y91dqnz277m4bNmNCzqVx84YRvYC5+LSUktXMrXM2xIa8iUi6szY4ZeUO8K1e1i89Ke8KgajbjrwVFqretw+pZj/xD+pjTov2oQIv7a5QbGp0lUVjhzDUdsDxidXepvTVjyoJCbiSncbFAp2VEK4SkFU5TNxQWcbEXCbjROUupR4yXz7Z4Onlj0XJ25I48hN7KxKeHg5+9PwV0b3PBZ2Ks/WyYjEXSH1YdMXsL6MHHb lluc@debian"
 
+Set-Content -Path C:\ProgramData\ssh\administrators_authorized_keys -Value "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDOVW8UbxENFatfzs1r6wN1+B56keMitZ72z+5sVf/8hcd8fe+EsshZhFJOC3a3N61/prje/gWwo+bjmY6ZzCGDp7bwZ9XIveYQuA3ALs063Y91dqnz277m4bNmNCzqVx84YRvYC5+LSUktXMrXM2xIa8iUi6szY4ZeUO8K1e1i89Ke8KgajbjrwVFqretw+pZj/xD+pjTov2oQIv7a5QbGp0lUVjhzDUdsDxidXepvTVjyoJCbiSncbFAp2VEK4SkFU5TNxQWcbEXCbjROUupR4yXz7Z4Onlj0XJ25I48hN7KxKeHg5+9PwV0b3PBZ2Ks/WyYjEXSH1YdMXsL6MHHb lluc@debian"
 
-## Configurar permisos dels arxius SSH
+icacls $env:USERPROFILE\.ssh_keys /inheritance:r
+icacls $env:USERPROFILE\.ssh_keys /grant "$($env:USERNAME):(OI)(CI)F"
+icacls $env:USERPROFILE\.ssh_keys\authorized_keys /grant "$($env:USERNAME):F"
+```
 
-## Configurar el servei SSH per a autenticació amb claus
+## Anar al fitxer "C:\ProgramData\ssh\sshd_config" i descomentar aquestes línies:
+```powershell
+PubkeyAuthentication yes
+PasswordAuthentication no
+```
 
-## Reiniciar el servei SSH per aplicar la configuració
+# Reiniciar el servei SSH
+```powershell
+Restart-Service sshd
+```
+
+# Canviar hostname i reiniciar servidor
+```powershell
+Rename-Computer -NewName "WSLluc" -Restart
+```
+
+##  Configurar el domini
+
+# Instalar AD
+```powershell
+Install-WindowsFeature AD-Domain-Services -IncludeManagementTools
+Import-Module ADDSDeployment
+```
+
+# Posar el servidor com a Controlador de Domini
+```powershell
+Install-ADDSForest -DomainName "lluc.local" -DomainNetbiosName "WindowsServer22" -SafeModeAdministratorPassword (ConvertTo-SecureString -AsPlainText "Patata123." -Force) -InstallDns -Force
+```
