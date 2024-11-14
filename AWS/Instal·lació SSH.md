@@ -35,25 +35,25 @@ PubkeyAuthentication yes
 PasswordAuthentication no
 ```
 
-# Reiniciar el servei SSH
+## Reiniciar el servei SSH
 ```powershell
 Restart-Service sshd
 ```
 
-# Canviar hostname i reiniciar servidor
+## Canviar hostname i reiniciar servidor
 ```powershell
 Rename-Computer -NewName "WSLluc" -Restart
 ```
 
 ##  Configurar el domini
 
-# Instalar AD
+## Instalar AD
 ```powershell
 Install-WindowsFeature AD-Domain-Services -IncludeManagementTools
 Import-Module ADDSDeployment
 ```
 
-# Posar el servidor com a Controlador de Domini
+## Posar el servidor com a Controlador de Domini
 ```powershell
 Install-ADDSForest -DomainName "lluc.local" -DomainNetbiosName "WindowsServer22" -SafeModeAdministratorPassword (ConvertTo-SecureString -AsPlainText "Patata123." -Force) -InstallDns -Force
 ```
