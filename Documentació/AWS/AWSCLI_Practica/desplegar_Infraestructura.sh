@@ -3,8 +3,7 @@
 # Comprovar el número d'arguments
 if [ $# -ne 6 ]; then
     echo "Error: El número d'arguments és incorrecte."
-    echo "Exemple d'ús:"
-    echo "./desplegar_Infraestructura.sh -d <NomDelDomini> -c <NumClients> -u <Usuari1/Contrasenya1,Usuari2/Contrasenya2,...>"
+    echo "Al document de README.md del GitHub hi ha com executar-ho"
     exit 1
 fi
 
@@ -42,13 +41,6 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-# Verificar connexió amb AWS
-aws s3 ls >/dev/null 2>&1
-if [ $? -ne 0 ]; then
-    echo "Error: Credencials AWS incorrectes o no configurades."
-    exit 1
-fi
-
 # Crear grup de seguretat
 echo "Creant grup de seguretat..."
 SG_ID=$(./grupsdeseguretat.sh | grep "Grup de seguretat creat amb ID" | awk '{print $NF}')
@@ -75,7 +67,7 @@ WS_ID=$(aws ec2 run-instances \
   --output text)
 
 if [ -z "$WS_ID" ]; then
-    echo "Error: No s'ha pogut crear la instància Windows Server."
+    echo "Error: No s'ha creat el Windows Server."
     exit 2
 fi
 echo "Instància Windows Server creada amb ID: $WS_ID"
