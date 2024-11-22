@@ -4,7 +4,7 @@
 aws ec2 create-security-group --group-name lluc-sg --description "Grup de Seguretat per a Hackathon"
 
 # Guardar ID del grup de seguretat, ho faig per després assignar aquesta ID a la màquina
-ID=$(aws ec2 describe-security-groups --filter Name=group-name,Values="lluc-sg" --query 'SecurityGroups[0].[GroupId]' --output text)
+ID=$(aws ec2 describe-security-groups --filter Name=group-name,Values="lluc-sg" --query 'SecurityGroups[0].[GroupId]' --output text) > /dev/null 2>&1
 
 # Comprovar si hi ha hagut algun error al crear el grup perquè sino no funcionara res
 if [ $? -ne 0 ]; then
