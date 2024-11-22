@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Comprovar el número d'arguments
 if [ $# -ne 6 ]; then
@@ -10,7 +10,7 @@ fi
 # Assignació d'arguments
 DOMAIN=""
 CLIENTS=0
-declare -A USERS_PASS
+USERS_PASS=""
 
 while [ $# -gt 0 ]; do
     case $1 in
@@ -27,11 +27,7 @@ while [ $# -gt 0 ]; do
             shift 2
             ;;
         -u)
-            IFS='/' read -ra pairs <<< "$2"
-            for pair in "${pairs[@]}"; do
-                IFS=',' read -r user pass <<< "$pair"
-                USERS_PASS["$user"]="$pass"
-            done
+            USERS_PASS=$2
             shift 2
             ;;
         *)
@@ -74,7 +70,6 @@ echo "Instància Windows Server creada amb ID: $WS_ID"
 
 # Crear clients Debian
 echo "Creant $CLIENTS clients Debian..."
-CLIENT_IPS=()
 DEBIAN_AMI="ami-064519b8c76274859" # AMI de Debian
 
 for i in $(seq 1 $CLIENTS); do
@@ -94,9 +89,5 @@ for i in $(seq 1 $CLIENTS); do
         echo "Error: No s'ha pogut crear el client Debian $i."
         continue
     fi
-
-    CLIENT_IP=$(aws ec2 describe-instances --instance-ids $CLIENT_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text | cut -d " " -f 5)
-    CLIENT_IPS+=("$CLIENT_IP")
-    echo "Client $i creat amb IP: $CLIENT_IP"
+    echo "Client $i creat"
 done
-
