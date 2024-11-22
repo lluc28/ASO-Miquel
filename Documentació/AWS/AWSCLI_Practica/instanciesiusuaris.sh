@@ -1,33 +1,32 @@
 #!/bin/bash
 
-# Llegir els paràmetres d'entrada
-NUM_CLIENTS=$1
-shift
-USERS_AND_PASSWORDS=("$@")
-
-# Miro que el num de clients no superi els 10
-if [ "$NUM_CLIENTS" -gt 10 ]; then
-    echo "No es poden crear més de 10 clients."
+# Seleccionar AMI basat en el tipus
+case $TYPE in
+  "WS") AMI="ami-0fe0e5689ec061c97" ;;  # Windows Server
+  "Debian") AMI="ami-064519b8c76274859" ;;  # Debian
+  *) 
+    echo "Error: El Tipus d'instància no és vàlid."
     exit 1
+  ;;
+esac
+
+# Crear instància EC2
+ID=$(aws ec2 run-instances \
+  --image-id "$AMI" \
+  --key-name "vockey" \
+  --instance-type "t2.micro" \
+  --network-interfaces '{"AssociatePublicIpAddress":true,"DeviceIndex":0,"Groups":["'"$SG_ID"'"]}' \
+  --credit-specification '{"CpuCredits":"standard"}' \
+  --tag-specifications '{"ResourceType":"instance","Tags":[{"Key":"Name","Value":"'"$TYPE"'"}]}' \
+  --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":true,"EnableResourceNameDnsAAAARecord":false}' \
+  --count "1" \
+  --query 'Instances[0].InstanceId' \
+  --output text)
+
+# Validació de la creació de la instància
+if [ -z "$ID" ]; then
+  echo "Error: No s'ha pogut crear la instància $TYPE."
+  exit 2
 fi
 
-# Funció per crear les instàncies EC2
-create_instance() {
-    CLIENT_ID=$1
-    IMAGE_ID="ami-0c55b159cbfafe1f0"  # Exemples d'AMI Linux 2 (canvia segons la teva regió)
-    INSTANCE_TYPE="t2.micro"
-    KEY_NAME="your-key-name"  # Afegeix el nom de la teva clau SSH
-    SECURITY_GROUP="your-security-group"  # Afegeix el nom del grup de seguretat
-    REGION="us-east-1"  # Canvia la regió segons les teves necessitats
-
-    # Creació de la instància EC2
-    echo "Creant instància Linux per al client $CLIENT_ID..."
-    INSTANCE_ID=$(aws ec2 run-instances \
-        --image-id $IMAGE_ID \
-        --instance-type $INSTANCE_TYPE \
-        --key-name $KEY_NAME \
-        --security-group-ids $SECURITY_GROUP \
-        --count 1 \
-        --region $REGION \
-        --query 'Instances[0].InstanceId' \
-        --output text)
+echo "Instància $TYPE creada amb ID: $ID"
