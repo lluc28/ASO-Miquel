@@ -54,7 +54,7 @@ WS_ID=$(aws ec2 run-instances \
   --image-id "$WS_AMI" \
   --key-name "vockey" \
   --instance-type "t2.micro" \
-  --network-interfaces '{"AssociatePublicIpAddress":true,"DeviceIndex":0,"Groups":["'"$SG_ID"'"]}' \
+  --network-interfaces '{"DeviceIndex":0,"Groups":["'"$SG_ID"'"]}' \
   --credit-specification '{"CpuCredits":"standard"}' \
   --tag-specifications '{"ResourceType":"instance","Tags":[{"Key":"Name","Value":"WS"}]}' \
   --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":true,"EnableResourceNameDnsAAAARecord":false}' \
@@ -77,7 +77,7 @@ for i in $(seq 1 $CLIENTS); do
       --image-id "$DEBIAN_AMI" \
       --key-name "vockey" \
       --instance-type "t2.micro" \
-      --network-interfaces '{"AssociatePublicIpAddress":true,"DeviceIndex":0,"Groups":["'"$SG_ID"'"]}' \
+      --network-interfaces '{"DeviceIndex":0,"Groups":["'"$SG_ID"'"]}' \
       --credit-specification '{"CpuCredits":"standard"}' \
       --tag-specifications '{"ResourceType":"instance","Tags":[{"Key":"Name","Value":"Debian-Client-'$i'"}]}' \
       --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":true,"EnableResourceNameDnsAAAARecord":false}' \
@@ -91,3 +91,4 @@ for i in $(seq 1 $CLIENTS); do
     fi
     echo "Client $i creat"
 done
+
