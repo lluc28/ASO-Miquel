@@ -1,36 +1,110 @@
 #!/bin/bash
 
-# Comprovació de paràmetres
-ARGS_ESPERATS=3
-if [ "$#" -ne $ARGS_ESPERATS ]; then
-    echo "Ús: $0 <domini_AD> <nom_server_web> <nombre_clients>"
-    echo "Exemple: $0 hackathon.local servidor-web 5 usuaris.txt"
+# Comprovar el número d'arguments
+if [ $# -ne 6 ]; then
+    echo "Error: El número d'arguments és incorrecte."
+    echo "Exemple d'ús:"
+    echo "./desplegar_Infraestructura.sh -d <NomDelDomini> -c <NumClients> -u <Usuari1/Contrasenya1,Usuari2/Contrasenya2,...>"
     exit 1
 fi
 
-# Assignació de variables des dels paràmetres d'entrada
-DOMINI_AD=$1
-NOM_SERVER_WEB=$2
-NOMBRE_CLIENTS=$3
+# Assignació d'arguments
+DOMAIN=""
+CLIENTS=0
+declare -A USERS_PASS
 
-# Validacions
-if [ "$NOMBRE_CLIENTS" -gt 10 ]; then
-    echo "Error: El nombre màxim de clients Linux és 10."
+while [ $# -gt 0 ]; do
+    case $1 in
+        -d)
+            DOMAIN=$2
+            shift 2
+            ;;
+        -c)
+            CLIENTS=$2
+            if [ $CLIENTS -gt 10 ] || [ $CLIENTS -lt 1 ]; then
+                echo "Error: El nombre de clients ha de ser entre 1 i 10."
+                exit 1
+            fi
+            shift 2
+            ;;
+        -u)
+            IFS='/' read -ra pairs <<< "$2"
+            for pair in "${pairs[@]}"; do
+                IFS=',' read -r user pass <<< "$pair"
+                USERS_PASS["$user"]="$pass"
+            done
+            shift 2
+            ;;
+        *)
+            echo "Error: Argument no reconegut."
+            exit 1
+            ;;
+    esac
+done
+
+# Verificar connexió amb AWS
+aws s3 ls >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo "Error: Credencials AWS incorrectes o no configurades."
     exit 1
 fi
 
+# Crear grup de seguretat
+echo "Creant grup de seguretat..."
+SG_ID=$(./grupsdeseguretat.sh | grep "Grup de seguretat creat amb ID" | awk '{print $NF}')
 
-# Execució d'scripts per a cada component de la infraestructura
-echo "Començant el desplegament de la infraestructura..."
+if [ -z "$SG_ID" ]; then
+    echo "Error: No s'ha pogut crear el grup de seguretat."
+    exit 2
+fi
+echo "Grup de seguretat creat amb ID: $SG_ID"
 
-echo "Configurant servidor Windows amb AD..."
-./configura_windows_ad.sh "$DOMINI_AD"
+# Crear instància Windows Server
+echo "Creant instància Windows Server..."
+WS_AMI="ami-05f283f34603d6aed" # AMI de Windows Server
+WS_ID=$(aws ec2 run-instances \
+  --image-id "$WS_AMI" \
+  --key-name "vockey" \
+  --instance-type "t2.micro" \
+  --network-interfaces '{"AssociatePublicIpAddress":true,"DeviceIndex":0,"Groups":["'"$SG_ID"'"]}' \
+  --credit-specification '{"CpuCredits":"standard"}' \
+  --tag-specifications '{"ResourceType":"instance","Tags":[{"Key":"Name","Value":"WS"}]}' \
+  --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":true,"EnableResourceNameDnsAAAARecord":false}' \
+  --count "1" \
+  --query 'Instances[0].InstanceId' \
+  --output text)
 
-echo "Configurant servidor Linux per al servei web..."
-./configura_server_web_linux.sh "$NOM_SERVER_WEB" "$DOMINI_AD"
+if [ -z "$WS_ID" ]; then
+    echo "Error: No s'ha pogut crear la instància Windows Server."
+    exit 2
+fi
+echo "Instància Windows Server creada amb ID: $WS_ID"
 
-echo "Creant clients Linux..."
-./crea_clients_linux.sh "$NOMBRE_CLIENTS" "$NOM_SERVER_WEB"
+# Crear clients Debian
+echo "Creant $CLIENTS clients Debian..."
+CLIENT_IPS=()
+DEBIAN_AMI="ami-064519b8c76274859" # AMI de Debian
 
-echo "Desplegament completat."
+for i in $(seq 1 $CLIENTS); do
+    CLIENT_ID=$(aws ec2 run-instances \
+      --image-id "$DEBIAN_AMI" \
+      --key-name "vockey" \
+      --instance-type "t2.micro" \
+      --network-interfaces '{"AssociatePublicIpAddress":true,"DeviceIndex":0,"Groups":["'"$SG_ID"'"]}' \
+      --credit-specification '{"CpuCredits":"standard"}' \
+      --tag-specifications '{"ResourceType":"instance","Tags":[{"Key":"Name","Value":"Debian-Client-'$i'"}]}' \
+      --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":true,"EnableResourceNameDnsAAAARecord":false}' \
+      --count "1" \
+      --query 'Instances[0].InstanceId' \
+      --output text)
+
+    if [ -z "$CLIENT_ID" ]; then
+        echo "Error: No s'ha pogut crear el client Debian $i."
+        continue
+    fi
+
+    CLIENT_IP=$(aws ec2 describe-instances --instance-ids $CLIENT_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text | cut -d " " -f 5)
+    CLIENT_IPS+=("$CLIENT_IP")
+    echo "Client $i creat amb IP: $CLIENT_IP"
+done
 
