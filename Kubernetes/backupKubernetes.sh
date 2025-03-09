@@ -46,8 +46,17 @@ fi
 
 # Ara creo l'arxiu de backup i el comprimeixo amb les carpetes necessaries
 # Genero la data per el nom del fitxer de backup agafant (any, mes, dia, hora, minut i segon) pk no hi hagi cap igual
-FITXER="backup-$(date +%Y%m%d-%H%M%S).tar.gz"
-sudo tar -czf "$FITXER" /var/lib/etcd /etc/kubernetes /home/asix/odoo-kubernetes
+# Aquí separem dos casos, si s'executa l'script manualment o automàtic ja que si és automàtic no s'ha de fer la copia de la base de dades
+if [ -n "$FROM_SETUP" ]; then
+    echo "El backup s'executa després del setupKubernetes" >> "$LOG_FILE"
+    FITXER="backup-$(date +%Y%m%d-%H%M%S).tar.gz"
+    sudo tar -czf "$FITXER" /var/lib/etcd /etc/kubernetes
+else
+    echo "El backup s'executa manualment" >> "$LOG_FILE"
+    FITXER="backup-$(date +%Y%m%d-%H%M%S).tar.gz"
+    sudo tar -czf "$FITXER" /var/lib/etcd /etc/kubernetes /home/asix/odoo-kubernetes
+fi
+
 if [ $? -ne 0 ]; then
     echo "ERROR: La compressió ha fallat (codi d'error: $?)" >&2
     echo "ERROR: La compressió ha fallat (codi d'error: $?)" >> "$LOG_FILE"
