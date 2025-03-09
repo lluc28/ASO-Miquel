@@ -183,6 +183,10 @@ echo "[$DATA] Cluster configurat correctament" >> "$LOG_FILE"
 echo -e "\nExecuta aquesta comanda per unir els workers:"
 kubeadm token create --print-join-command
 
+# Faig servir una variable d'entorn per tal de saber després al backup si s'ha executat automàticament o manualment
+export FROM_SETUP=true
+bash "$BACKUP_SCRIPT" >> "$LOG_FILE" 2>&1 && echo "Backup finalitzat" || echo "ERROR: Backup fallit" | tee -a "$LOG_FILE"
+
 # Execució de l'script de backup automàtic
 echo "S'està executant el backup..." | tee -a "$LOG_FILE"
 BACKUP_SCRIPT="/home/lluc/scripts/Kubernetes/backupKubernetes.sh"
